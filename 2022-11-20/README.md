@@ -6,6 +6,9 @@
 
   - Usage: `./pilish.py filename`
 
+  - Runs in Python 3.9+ with no dependencies (`requirements.txt` gives the dev
+    environment I use)
+
 - `make_pilish.jl`: Program to produce a pilish "poem" out of some public domain
   texts. Outputs to the standard output.
 

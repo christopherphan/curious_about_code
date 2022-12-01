@@ -1,0 +1,6 @@
+.env
+.ipynb_checkpoints
+__pycache__
+activate
+one-million.txt
+not_a_wake_*.txt
