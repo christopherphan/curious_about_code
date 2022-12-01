@@ -8,7 +8,7 @@
 # Produces a Pilish "free verse poem" based on a simple probability model
 # from public domain texts.
 
-function add_to_freq_list(d::Dict{String, Int64}, word::String)
+function add_to_freq_list(d::Dict{String,Int64}, word::String)
     if !(word in keys(d))
         d[word] = 1
     else
@@ -16,21 +16,21 @@ function add_to_freq_list(d::Dict{String, Int64}, word::String)
     end
 end
 
-function add_to_length_list(d::Dict{Int8, Dict{String, Int64}}, word::String)
+function add_to_length_list(d::Dict{Int8,Dict{String,Int64}}, word::String)
     ell = length(filter(isletter, word))
     if !(ell in keys(d))
-        d[ell] = Dict{String, Int64}()
+        d[ell] = Dict{String,Int64}()
     end
     add_to_freq_list(d[ell], word)
 end
 
 function add_to_pair_list(
-    d::Dict{String, Dict{Int8, Dict{String, Int64}}},
+    d::Dict{String,Dict{Int8,Dict{String,Int64}}},
     word::String,
-    next_word::String
+    next_word::String,
 )
     if !(word in keys(d))
-        d[word] = Dict{Int8, Dict{String, Int64}}()
+        d[word] = Dict{Int8,Dict{String,Int64}}()
     end
     add_to_length_list(d[word], next_word)
 end
@@ -38,17 +38,16 @@ end
 
 function process_file(
     filename::String,
-    wp::Dict{String, Dict{Int8, Dict{String, Int64}}},
-    tw::Dict{Int8, Dict{String, Int64}}
+    wp::Dict{String,Dict{Int8,Dict{String,Int64}}},
+    tw::Dict{Int8,Dict{String,Int64}},
 )
-    text = open(f->readlines(f), filename)
+    text = open(f -> readlines(f), filename)
     words = filter(
-       x->(length(filter(isletter, x)) > 0 && length(filter(isletter, x)) < 11),
-       [
-           lowercase(filter(x->(isletter(x) ||x == '\''), w)) for w in reduce(
-              vcat, [split(replace(line, "-" => " "), " ") for line in text]
-           )
-       ]
+        x -> (length(filter(isletter, x)) > 0 && length(filter(isletter, x)) < 11),
+        [
+            lowercase(filter(x -> (isletter(x) || x == '\''), w)) for
+            w in reduce(vcat, [split(replace(line, "-" => " "), " ") for line in text])
+        ],
     )
     for k in zip(words[begin:end], words[2:end])
         add_to_pair_list(wp, k[1], k[2])
@@ -58,13 +57,10 @@ end
 
 function get_freq_data(
     filenames::Vector{String},
-)::Tuple{
-    Dict{String, Dict{Int8, Dict{String, Int64}}},
-    Dict{Int8, Dict{String, Int64}}
-}
+)::Tuple{Dict{String,Dict{Int8,Dict{String,Int64}}},Dict{Int8,Dict{String,Int64}}}
 
-    word_pairs = Dict{String, Dict{Int8, Dict{String, Int64}}}()
-    total_words = Dict{Int8, Dict{String, Int64}}()
+    word_pairs = Dict{String,Dict{Int8,Dict{String,Int64}}}()
+    total_words = Dict{Int8,Dict{String,Int64}}()
 
     for file in filenames
         process_file(file, word_pairs, total_words)
@@ -72,11 +68,9 @@ function get_freq_data(
     return (word_pairs, total_words)
 end
 
-function invert_freq_list(
-    d::Dict{String, Int64}
-)::Tuple{Dict{Int64, String}, Int64}
+function invert_freq_list(d::Dict{String,Int64})::Tuple{Dict{Int64,String},Int64}
     k = Int64(0)
-    output = Dict{Int64, String}()
+    output = Dict{Int64,String}()
     for key in keys(d)
         output[k] = key
         k += d[key]
@@ -84,42 +78,32 @@ function invert_freq_list(
     return (output, k)
 end
 
-function get_word_from_inv_freq_list(
-    d::Dict{Int64, String},
-    num::Int64
-)::String
+function get_word_from_inv_freq_list(d::Dict{Int64,String}, num::Int64)::String
     sorted_keys = sort([k for k in keys(d)])
     for (idx, key) in enumerate(sorted_keys)
         if key > num
-            return d[sorted_keys[idx - 1]]
+            return d[sorted_keys[idx-1]]
         end
     end
     return d[sorted_keys[end]]
 end
 
-function random_word_from_inv_freq_list(
-    d::Dict{Int64, String},
-    total::Int64
-)::String
+function random_word_from_inv_freq_list(d::Dict{Int64,String}, total::Int64)::String
     num = Int64(trunc(rand() * total + 1))
     return get_word_from_inv_freq_list(d, num)
 end
 
 function get_next_word(
-    wp::Dict{String, Dict{Int8, Dict{String, Int64}}},
-    iwp::Dict{String, Dict{Int8, Tuple{Dict{Int64, String}, Int64}}},
-    itw::Dict{Int8, Tuple{Dict{Int64, String}, Int64}},
+    wp::Dict{String,Dict{Int8,Dict{String,Int64}}},
+    iwp::Dict{String,Dict{Int8,Tuple{Dict{Int64,String},Int64}}},
+    itw::Dict{Int8,Tuple{Dict{Int64,String},Int64}},
     word::String,
-    next_len::Int8
+    next_len::Int8,
 )::String
     if next_len in keys(wp[word])
         if !(word in keys(iwp))
-            iwp[word] = Dict(
-                [
-                     (len, invert_freq_list(wp[word][len]))
-                     for len in keys(wp[word])
-                ]
-            )
+            iwp[word] =
+                Dict([(len, invert_freq_list(wp[word][len])) for len in keys(wp[word])])
         end
         particular_iwl = iwp[word][next_len]
     else
@@ -130,15 +114,11 @@ end
 
 function make_poem(
     digits::Vector{Int8},
-    wp::Dict{String, Dict{Int8, Dict{String, Int64}}},
-    tw::Dict{Int8, Dict{String, Int64}},
-   )::Vector{String}
-    inv_total_words = Dict([
-        (ell, invert_freq_list(tw[ell])) for ell in keys(tw)
-    ])
-    inv_word_pairs = Dict{
-        String, Dict{Int8, Tuple{Dict{Int64, String}, Int64}}
-    }()
+    wp::Dict{String,Dict{Int8,Dict{String,Int64}}},
+    tw::Dict{Int8,Dict{String,Int64}},
+)::Vector{String}
+    inv_total_words = Dict([(ell, invert_freq_list(tw[ell])) for ell in keys(tw)])
+    inv_word_pairs = Dict{String,Dict{Int8,Tuple{Dict{Int64,String},Int64}}}()
 
     if digits[1] == 0
         next_len = Int8(10)
@@ -148,8 +128,9 @@ function make_poem(
 
     output = [
         random_word_from_inv_freq_list(
-           inv_total_words[next_len][1], inv_total_words[next_len][2]
-        )
+            inv_total_words[next_len][1],
+            inv_total_words[next_len][2],
+        ),
     ]
     for k in digits[2:end]
         if k == 0
@@ -157,8 +138,8 @@ function make_poem(
         else
             next_len = k
         end
-        next_word = get_next_word(
-            wp, inv_word_pairs, inv_total_words, output[end], next_len)
+        next_word =
+            get_next_word(wp, inv_word_pairs, inv_total_words, output[end], next_len)
         output = vcat(output, [next_word])
     end
     return output
@@ -182,7 +163,7 @@ end
 
 file_list = [
     "pg_books/43-0.txt", # The Strange Case Of Dr. Jekyll
-                         # And Mr. Hyde, by Robert Louis Stevenson
+    # And Mr. Hyde, by Robert Louis Stevenson
     "pg_books/pg514.txt", # Little Women, by Louisa May Alcott
     "pg_books/46-0.txt", # A Christmas Carol, by Charles Dickens
     "pg_books/84-0.txt", # Frankenstein, by Mary Wollstonecraft (Godwin) Shelley
@@ -201,10 +182,7 @@ file_list = [
 
 word_pairs, total_words = get_freq_data(file_list)
 
-pi_digits = [
-    parse(Int8,k)
-    for k in "314159265358979323846264338327950288419716939937510"
-]
+pi_digits = [parse(Int8, k) for k in "314159265358979323846264338327950288419716939937510"]
 
 pilish = make_poem(pi_digits, word_pairs, total_words)
 
