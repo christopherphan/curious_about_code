@@ -5,8 +5,9 @@ site: <https://discourse.davidamos.dev/t/perfectly-squared-squares/115>
 
 from __future__ import annotations
 
+import json
+import logging
 from collections.abc import Iterator, Sequence
-from dataclasses import dataclass
 from functools import cached_property
 from sys import argv
 
@@ -20,9 +21,24 @@ class RootNode:
     def __init__(self: RootNode) -> None:
         """Initialize object."""
         self.children: list[SquareNode] = []  # the squares touching the left edge
-        self.descendents: list[SquareNode] = []  # all squares, in order of attachment
+        self._top_row_complete = False
         self._y = 0
         self._x = 0
+
+    @property
+    def descendents(self: RootNode) -> Iterator[SquareNode]:
+        """Return all decendents."""
+        for k in self.children:
+            yield k
+            for u in k.descendents:
+                yield u
+
+    def _find_which(self: RootNode, pos: tuple[int, int]) -> SquareNode | None:
+        """Return the SquareNode (if any) that contains pos."""
+        for d in self.descendents:
+            if pos in d:
+                return d
+        return None
 
     @property
     def next_vert_offset(self: RootNode) -> int:
@@ -31,7 +47,6 @@ class RootNode:
 
     def _add_square(self: RootNode, length: int) -> SquareNode:
         self.children.append(s := SquareNode(self, length, self.next_vert_offset))
-        self.descendents.append(s)
         return s
 
     def __contains__(self: RootNode, pos: tuple[int | float, int | float]) -> bool:
@@ -62,18 +77,41 @@ class RootNode:
     @property
     def next_to_attach(self: RootNode) -> RootNode | SquareNode:
         """Find the square the next tuple will be attached to."""
-        for d in reversed(self.descendents):
-            if d.has_room_on_right:
-                return d
-        return self
+        candidate = self
+        for d in self.descendents:
+            assert candidate.next_vert_offset is not None
+            logging.debug(
+                f"Candidate: {candidate}, abs NVO:"
+                + f" {candidate.next_vert_offset + candidate._y}"
+                + f"\tLooking at {d}, abs NVO: "
+                + f"{dnvo + d._y if (dnvo:= d.next_vert_offset) is not None else None}"
+            )
+            if (
+                (not self._top_row_complete or d._x + d.length < self.length)
+                and ((v := d.next_vert_offset) is not None)
+                and (
+                    (v_diff := v + d._y - (candidate.next_vert_offset + candidate._y))
+                    < 0
+                    or (
+                        v_diff == 0
+                        and d._x + d.length < candidate._x + candidate.length
+                    )
+                )
+            ):
+                candidate = d
+        logging.debug(f"Next to attach: {candidate}\n")
+        return candidate
 
     def add_tuple(self: RootNode, seq: Sequence[int]) -> None:
         """Add the squares represented by a tuple."""
         k = self.next_to_attach
         for u in seq:
-            k = k._add_square(u)
-            if k is None:
-                raise ValueError(f"Can't attach {u} onto {self.descendents[-1]}")
+            if (w := k._add_square(u)) is None:
+                raise ValueError(f"Can't attach {u} onto {k}")
+            else:
+                logging.info(f"Attached {w} onto {k}")
+                k = w
+        self._top_row_complete = True
 
     @property
     def valid_square(self: RootNode) -> bool:
@@ -83,13 +121,9 @@ class RootNode:
             == self.length  # bonus problem input describes a non-square rectangle
             and len(set(d.length for d in self.descendents))
             == len(
-                self.descendents
+                set(self.descendents)
             )  # Requirement that every square have a different size
-            and all(
-                (j, k) in self
-                for j in range(0, self.length)
-                for k in range(0, self.length)
-            )  # do squares cover the entire area?
+            and self.next_to_attach == self  # No gaps inside
             and all(
                 (u := d.bottom_right_corner)[0] <= self.length and u[1] <= self.length
                 for d in self.descendents
@@ -155,6 +189,7 @@ class SquareNode:
         self.length = length
         self.vert_offset = vert_offset
         self.children: list[SquareNode] = []
+        self._next_vert_offset = 0
 
     @property
     def descendents(self: SquareNode) -> Iterator[SquareNode]:
@@ -236,9 +271,15 @@ class SquareNode:
     @property
     def next_vert_offset(self: SquareNode) -> int | None:
         """Return the highest point on the right edge not adjacent to another square."""
-        for dy in range(self.length):
-            if (self._x + self.length, self._y + dy) not in self.root:
-                return dy
+        while self._next_vert_offset < self.length:
+            if (
+                fw := self.root._find_which(
+                    (self._x + self.length, self._y + self._next_vert_offset)
+                )
+            ) is None:
+                return self._next_vert_offset
+            else:
+                self._next_vert_offset = fw._y + fw.length - self._y
         return None
 
     @property
@@ -256,7 +297,6 @@ class SquareNode:
             return None
         new_square = self.__class__(self, length, nvo)
         self.children.append(new_square)
-        self.root.descendents.append(new_square)
         return new_square
 
     def __str__(self: SquareNode) -> str:
@@ -265,22 +305,34 @@ class SquareNode:
 
 
 if __name__ == "__main__":
-    if len(argv) == 1:
-        print(f"Usage: {argv[0]} filename")
+    if len(argv) == 1 or (len(argv) == 2 and "--debug" in argv):
+        print(f"Usage: {argv[0]} filename [--debug]")
     else:
+        if len(argv) > 2 and argv[2].strip() == "--debug":
+            log_lev = logging.DEBUG
+        else:
+            log_lev = logging.INFO
+        logging.basicConfig(
+            format="%(levelname)s %(filename)s:%(lineno)d %(funcName)s"
+            + " %(asctime)s: %(message)s",
+            filename="square_tess.log",
+            filemode="w",
+            level=log_lev,
+        )
+        logging.info(f"Running command: {' '.join(argv)}")
         with open(argv[1], "rt") as infile:
-            raw_data = infile.read().splitlines()
+            raw_data = infile.read()
+        if raw_data[-1] == "\n":
+            raw_data = raw_data[:-1]
+        raw_data = (
+            "[" + raw_data.replace("\n", ",").replace("(", "[").replace(")", "]") + "]"
+        )
+        data = json.loads(raw_data)
         tess = RootNode()
-        for k in raw_data:
-            tess.add_tuple(
-                [
-                    int(u.strip())
-                    for u in k.strip().replace("(", "").replace(")", "").split(",")
-                ]
-            )
+        for k in data:
+            tess.add_tuple(k)
         if tess.valid_square:
             print("Perfectly squared square")
         else:
             print("Not a perfectly squared square")
-        if tess.descendents is not None:
-            fig = tess.as_plt(argv[1] + ".svg")
+        fig = tess.as_plt(argv[1] + ".svg")
