@@ -94,6 +94,25 @@ def possible_next_moves(
     return ret_val
 
 
+def tile_to_move(arrangement: IntegerPermutation, direction: str) -> int:
+    """Return the label on the tile that is moved when going a certain direction."""
+    if direction:
+        parsed_direction = direction[0].lower()
+    else:
+        raise ValueError("Empty direction")
+    empty_pos = empty_position(arrangement)
+    if parsed_direction == "u" and empty_pos > 4:
+        return arrangement(empty_pos - 4)
+    elif parsed_direction == "d" and empty_pos < 13:
+        return arrangement(empty_pos + 4)
+    elif parsed_direction == "l" and empty_pos % 4 != 1:
+        return arrangement(empty_pos - 1)
+    elif parsed_direction == "r" and empty_pos % 4 != 0:
+        return arrangement(empty_pos + 1)
+    else:
+        raise ValueError(f"Invalid direction {direction!r}")
+
+
 def _game_status(arrangement: IntegerPermutation, disp_perm: bool = False) -> str:
     """Return the board and if the puzzle is solved."""
     return (

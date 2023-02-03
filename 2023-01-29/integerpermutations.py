@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from functools import cached_property
+from typing import Final
 
 
 def _not_injective_msg(in_1: int, in_2: int, out: int) -> str:
@@ -149,6 +150,8 @@ class IntegerPermutation:
         """Return a list of all the integers not fixed by the permutation."""
         return frozenset(self._mapping.keys())
 
+
+IDENTITY: Final[IntegerPermutation] = IntegerPermutation({})
 
 if __name__ == "__main__":
     a = IntegerPermutation({1: 5, 5: 7, 7: 3, 3: 1, 10: 9, 9: 10, 8: 8})
