@@ -25,7 +25,7 @@ else:
 perm = read_arrangment(puzzle_input)
 print(f"Puzzle:\n{puzzle_input}\n")
 print(f"Positions -> tiles: {perm}")
-print(f"Pieces -> tiles: {~perm}")
+print(f"Tiles -> Positions: {~perm}")
 print(f"Pairity: {(~perm).pairity}")
 print(
     "Manhattan distance of empty square from bottom-right corner: "
