@@ -1,4 +1,4 @@
-"""Validate 15 puzzle arrangments."""
+"""Validate 15 puzzle arrangements."""
 
 
 from random import choice
@@ -11,7 +11,7 @@ VALID_MOVES: Final[frozenset[IntegerPermutation]] = frozenset(
     # Represents the valid transpositions of the _positions_ (not tiles)
     # in the puzzle (assuming that one of the two positions swapped is
     # the empty tile). Right-multiplication by a valid move represents
-    # carrying out the swap on the puzzle arrangment.
+    # carrying out the swap on the puzzle arrangement.
     [IntegerPermutation.transposition(j, j + 4) for j in range(1, 5)]
     + [IntegerPermutation.transposition(j, j + 4) for j in range(9, 13)]
     + [IntegerPermutation.transposition(j, j + 1) for j in range(1, 14, 4)]
@@ -19,9 +19,9 @@ VALID_MOVES: Final[frozenset[IntegerPermutation]] = frozenset(
 )
 
 
-def read_arrangment(text: str) -> IntegerPermutation:
+def read_arrangement(text: str) -> IntegerPermutation:
     """
-    Read the arrangment and return a permutation mapping positions to tiles.
+    Read the arrangement and return a permutation mapping positions to tiles.
 
     The empty space is considered tile 16. The positions are indexed by the
     corresponding tile in the solved puzzle.
@@ -94,6 +94,25 @@ def possible_next_moves(
     return ret_val
 
 
+def tile_to_move(arrangement: IntegerPermutation, direction: str) -> int:
+    """Return the label on the tile that is moved when going a certain direction."""
+    if direction:
+        parsed_direction = direction[0].lower()
+    else:
+        raise ValueError("Empty direction")
+    empty_pos = empty_position(arrangement)
+    if parsed_direction == "u" and empty_pos > 4:
+        return arrangement(empty_pos - 4)
+    elif parsed_direction == "d" and empty_pos < 13:
+        return arrangement(empty_pos + 4)
+    elif parsed_direction == "l" and empty_pos % 4 != 1:
+        return arrangement(empty_pos - 1)
+    elif parsed_direction == "r" and empty_pos % 4 != 0:
+        return arrangement(empty_pos + 1)
+    else:
+        raise ValueError(f"Invalid direction {direction!r}")
+
+
 def _game_status(arrangement: IntegerPermutation, disp_perm: bool = False) -> str:
     """Return the board and if the puzzle is solved."""
     return (
@@ -124,7 +143,7 @@ def play_puzzle(arrangement: IntegerPermutation | None = None) -> None:
     """Present iteractive game."""
     if arrangement is not None and not valid_permutation(arrangement):
         raise ValueError(
-            "Permutation does not represent a valid arrangment of the fifteen puzzle."
+            "Permutation does not represent a valid arrangement of the fifteen puzzle."
         )
     if arrangement is None:
         current = IntegerPermutation({})
@@ -155,6 +174,6 @@ def play_puzzle(arrangement: IntegerPermutation | None = None) -> None:
 if __name__ == "__main__":
     if len(argv) > 1:
         with open(argv[1], "rt") as infile:
-            play_puzzle(read_arrangment(infile.read()))
+            play_puzzle(read_arrangement(infile.read()))
     else:
         play_puzzle()
