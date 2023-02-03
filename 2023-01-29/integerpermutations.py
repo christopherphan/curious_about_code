@@ -11,6 +11,13 @@ def _not_injective_msg(in_1: int, in_2: int, out: int) -> str:
     return f"Not one-to-one, as {in_1} and {in_2} both map to {out}."
 
 
+def _rotate_cycle(cycle: Sequence[int]) -> list[int]:
+    """Rotate sequence to place largest integer first."""
+    cycle_as_list = list(cycle)
+    new_zero = cycle_as_list.index(max(cycle_as_list))
+    return cycle_as_list[new_zero:] + cycle_as_list[:new_zero]
+
+
 class IntegerPermutation:
     """A bijection on the integers that fixes all but a finite number of elements."""
 
@@ -90,6 +97,13 @@ class IntegerPermutation:
         return self._inverse
 
     @classmethod
+    def transposition(
+        cls: type[IntegerPermutation], value1: int, value2: int
+    ) -> IntegerPermutation:
+        """Construct a permutation that swaps value1 and value2."""
+        return cls({value1: value2, value2: value1})
+
+    @classmethod
     def cycle(cls: type[IntegerPermutation], vals: Sequence[int]) -> IntegerPermutation:
         """Construct a permutation out of the cycle given by vals."""
         val_list = list(vals)
@@ -120,12 +134,20 @@ class IntegerPermutation:
                 ret_val.append(new_cycle)
                 for u in new_cycle:
                     cycle_dict[u] = new_cycle
+        ret_val = [
+            _rotate_cycle(c) for c in sorted(ret_val, key=lambda cycle: max(cycle))
+        ]
         return ret_val
 
     @cached_property
     def pairity(self: IntegerPermutation) -> int:
         """Return 0 if self is an even permutation, 1 if self is an odd permutation."""
         return len([k for k in self.cycle_decomposition if len(k) % 2 == 0]) % 2
+
+    @cached_property
+    def unfixed(self: IntegerPermutation) -> frozenset[int]:
+        """Return a list of all the integers not fixed by the permutation."""
+        return frozenset(self._mapping.keys())
 
 
 if __name__ == "__main__":
