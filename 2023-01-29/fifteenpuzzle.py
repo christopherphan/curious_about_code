@@ -1,4 +1,4 @@
-"""Validate 15 puzzle arrangments."""
+"""Validate 15 puzzle arrangements."""
 
 
 from random import choice
@@ -11,7 +11,7 @@ VALID_MOVES: Final[frozenset[IntegerPermutation]] = frozenset(
     # Represents the valid transpositions of the _positions_ (not tiles)
     # in the puzzle (assuming that one of the two positions swapped is
     # the empty tile). Right-multiplication by a valid move represents
-    # carrying out the swap on the puzzle arrangment.
+    # carrying out the swap on the puzzle arrangement.
     [IntegerPermutation.transposition(j, j + 4) for j in range(1, 5)]
     + [IntegerPermutation.transposition(j, j + 4) for j in range(9, 13)]
     + [IntegerPermutation.transposition(j, j + 1) for j in range(1, 14, 4)]
@@ -19,9 +19,9 @@ VALID_MOVES: Final[frozenset[IntegerPermutation]] = frozenset(
 )
 
 
-def read_arrangment(text: str) -> IntegerPermutation:
+def read_arrangement(text: str) -> IntegerPermutation:
     """
-    Read the arrangment and return a permutation mapping positions to tiles.
+    Read the arrangement and return a permutation mapping positions to tiles.
 
     The empty space is considered tile 16. The positions are indexed by the
     corresponding tile in the solved puzzle.
@@ -124,7 +124,7 @@ def play_puzzle(arrangement: IntegerPermutation | None = None) -> None:
     """Present iteractive game."""
     if arrangement is not None and not valid_permutation(arrangement):
         raise ValueError(
-            "Permutation does not represent a valid arrangment of the fifteen puzzle."
+            "Permutation does not represent a valid arrangement of the fifteen puzzle."
         )
     if arrangement is None:
         current = IntegerPermutation({})
@@ -155,6 +155,6 @@ def play_puzzle(arrangement: IntegerPermutation | None = None) -> None:
 if __name__ == "__main__":
     if len(argv) > 1:
         with open(argv[1], "rt") as infile:
-            play_puzzle(read_arrangment(infile.read()))
+            play_puzzle(read_arrangement(infile.read()))
     else:
         play_puzzle()
