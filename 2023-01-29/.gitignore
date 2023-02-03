@@ -1,3 +1,5 @@
 activate
 .flake8
 part2_input.txt
+part2_sample_input.txt
+part2_solution.txt
