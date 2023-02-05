@@ -27,6 +27,8 @@ def run_test() -> bool:
     )
     rust_output_filename = filename + "_rust_output"
     print(f"Rust solver done. Output saved to {rust_output_filename}")
+    with open(rust_output_filename, "wt") as outfile:
+        outfile.write(rust_output.stdout)
     # Verify solution
     soln = [
         int(k.strip())
