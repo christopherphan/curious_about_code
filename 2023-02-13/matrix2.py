@@ -1,4 +1,4 @@
-# matrix.py
+# matrix2.py
 
 """Solution to David Amos's weekly coding challenge for 2023-02-13:
     https://discourse.davidamos.dev/t/flight-inference/135
@@ -13,6 +13,7 @@ from _resources import DirectedGraph, format_answer
 
 def reachable(dgraph: DirectedGraph) -> dict[str, list[str]]:
     num_vert = len(dgraph.vertices)
+    num_edges = sum(len(k) for k in dgraph.edges.values())
     incidence_mat = np.array(
         [
             [
@@ -25,11 +26,7 @@ def reachable(dgraph: DirectedGraph) -> dict[str, list[str]]:
         ],
         np.int64,
     )
-    old_reachable = np.zeros((num_vert, num_vert), np.int64)
-    reachable_mat = incidence_mat
-    while np.count_nonzero(reachable_mat) != np.count_nonzero(old_reachable):
-        old_reachable = reachable_mat
-        reachable_mat = reachable_mat @ incidence_mat != 0
+    reachable_mat = np.linalg.matrix_power(incidence_mat, min(num_vert, num_edges) + 1)
     return {
         dgraph.vertices[j]: list(
             dgraph.vertices[k]

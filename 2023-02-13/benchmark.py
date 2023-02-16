@@ -28,19 +28,21 @@ def run_time_test(tt: TimeTest, num_repeat: int) -> list[float]:
 
 
 if __name__ == "__main__":
-    IMPORTS: Final[list[str]] = ["graphdestinations", "matrix"]
-    GRAPH_FILES: Final[dict[str, int]] = {
-        "flights1.txt": 10_000,
-        "gistfile1.txt": 1_000,
+    IMPORTS: Final[list[str]] = ["graphdestinations", "matrix", "matrix2"]
+    GRAPH_FILES: Final[dict[str, tuple[int, list[str]]]] = {
+        "flights1.txt": (10_000, []),
+        "gistfile1.txt": (1_000, []),
+        "super_example.txt": (1, ["matrix", "matrix2"]),
     }
     for mod_name in IMPORTS:
-        for g, num in GRAPH_FILES.items():
-            print(
-                f"{mod_name} on {g}: "
-                + ", ".join(
-                    f"{val*1_000_000:0.6f} \xb5s"
-                    for val in run_time_test(
-                        TimeTest(f"from {mod_name} import reachable", g), num
+        for g, (num, exclude_list) in GRAPH_FILES.items():
+            if mod_name not in exclude_list:
+                print(
+                    f"{mod_name} on {g}: "
+                    + ", ".join(
+                        f"{val*1_000_000:0.6f} \xb5s"
+                        for val in run_time_test(
+                            TimeTest(f"from {mod_name} import reachable", g), num
+                        )
                     )
                 )
-            )
