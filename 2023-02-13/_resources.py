@@ -16,14 +16,14 @@ class DirectedGraph(NamedTuple):
 
     @classmethod
     def read_file(cls: type[DirectedGraph], filename: str) -> DirectedGraph:
-        """Read a directed graph dataset."""
+        """Read a directed graph dataset from a file."""
         with open(filename, "rt") as infile:
             data = infile.read()
         return cls.read_string(data)
 
     @classmethod
     def read_string(cls: type[DirectedGraph], data: str) -> DirectedGraph:
-        """Read a directed graph dataset from str."""
+        """Read a directed graph dataset from a string."""
         edges = [
             ((k := line.split())[0].strip(), k[1].strip()) for line in data.splitlines()
         ]
@@ -34,6 +34,14 @@ class DirectedGraph(NamedTuple):
             vertices.add(e0)
             vertices.add(e1)
         return DirectedGraph(list(vertices), edge_dict)
+
+    def output_graph(self: DirectedGraph) -> str:
+        """Output the directed graph as a string."""
+        return "\n".join(
+            f"{vert} {dest}"
+            for vert, edge_list in sorted(self.edges.items())
+            for dest in sorted(edge_list)
+        )
 
 
 def format_answer(output: dict[str, list[str]]) -> str:
