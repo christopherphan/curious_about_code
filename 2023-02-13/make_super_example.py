@@ -56,20 +56,12 @@ def complicate(graph: DirectedGraph, cycler: Iterator[DirectedGraph]) -> Directe
     return DirectedGraph(list(new_vertices), new_edges)
 
 
-def output_graph(graph: DirectedGraph) -> str:
-    return "\n".join(
-        f"{vert} {dest}"
-        for vert, edge_list in graph.edges.items()
-        for dest in edge_list
-    )
-
-
 def main():
     cycler = graph_cycler(GRAPHS)
     graph = next(cycler)
     for _ in range(3):
         graph = complicate(graph, cycler)
-    print(output_graph(graph))
+    print(graph.output_graph)
 
 
 if __name__ == "__main__":
