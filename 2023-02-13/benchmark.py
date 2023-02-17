@@ -7,13 +7,22 @@
 import timeit
 from typing import Final, NamedTuple
 
+import rich.box
+from rich.console import Console
+from rich.table import Table
+
+from _resources import DirectedGraph
+
 
 class TimeTest(NamedTuple):
+    """Represent a file and module combo to test with timeit."""
+
     import_str: str
     graph_file: str
 
 
 def make_timer(tt: TimeTest) -> timeit.Timer:
+    """Produce a Timer object for the given time test."""
     return timeit.Timer(
         "reachable(graph)",
         setup=tt.import_str
@@ -22,9 +31,10 @@ def make_timer(tt: TimeTest) -> timeit.Timer:
     )
 
 
-def run_time_test(tt: TimeTest, num_repeat: int) -> list[float]:
+def run_time_test(tt: TimeTest, num_repeat: int) -> float:
+    """Run the time test and give the return time per execusion."""
     t = make_timer(tt)
-    return [k / num_repeat for k in t.repeat(number=num_repeat)]
+    return max(k / num_repeat for k in t.repeat(number=num_repeat))
 
 
 if __name__ == "__main__":
@@ -32,17 +42,50 @@ if __name__ == "__main__":
     GRAPH_FILES: Final[dict[str, tuple[int, list[str]]]] = {
         "flights1.txt": (10_000, []),
         "gistfile1.txt": (1_000, []),
-        "super_example.txt": (1, ["matrix", "matrix2"]),
-    }
+        "super_example.txt": (3, ["matrix", "matrix2"]),
+    } | {f"random_{k}.txt": (500, []) for k in range(4)}
+    console = Console()
+
+    graphtable = Table(title="Graphs", box=rich.box.MARKDOWN)
+    graphtable.add_column("File")
+    graphtable.add_column("# vertices", justify="right")
+    graphtable.add_column("# edges", justify="right")
+    graphtable.add_column("Execusions per trial", justify="right")
+    for v, k in GRAPH_FILES.items():
+        g = DirectedGraph.read_file(v)
+        graphtable.add_row(
+            v,
+            "{:,}".format(len(g.vertices)),
+            "{:,}".format(sum(len(e) for e in g.edges.values())),
+            "{:,}".format(k[0]),
+        )
+    console.print()
+    console.print(graphtable)
+
+    table = Table(
+        title="Benchmarks (max of five trials, times in \xb5s/execution)",
+        box=rich.box.MARKDOWN,
+    )
+    table.add_column("Graph")
     for mod_name in IMPORTS:
-        for g, (num, exclude_list) in GRAPH_FILES.items():
+        table.add_column(mod_name, justify="right")
+    for g, (num, exclude_list) in GRAPH_FILES.items():
+        to_output = [g]
+        for mod_name in IMPORTS:
             if mod_name not in exclude_list:
-                print(
-                    f"{mod_name} on {g}: "
-                    + ", ".join(
-                        f"{val*1_000_000:0.6f} \xb5s"
-                        for val in run_time_test(
-                            TimeTest(f"from {mod_name} import reachable", g), num
+                to_output.append(
+                    "{:,}".format(
+                        round(
+                            run_time_test(
+                                TimeTest(f"from {mod_name} import reachable", g),
+                                num,
+                            )
+                            * 1_000_000
                         )
                     )
                 )
+            else:
+                to_output.append("-")
+        table.add_row(*to_output)
+    console.print()
+    console.print(table)
