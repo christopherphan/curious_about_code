@@ -12,6 +12,7 @@ from _resources import DirectedGraph, format_answer
 
 
 def reachable(dgraph: DirectedGraph) -> dict[str, list[str]]:
+    """Find which destinations are reachable from a given starting point."""
     num_vert = len(dgraph.vertices)
     num_edges = sum(len(k) for k in dgraph.edges.values())
     incidence_mat = np.array(
