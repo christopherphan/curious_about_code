@@ -38,7 +38,12 @@ def run_time_test(tt: TimeTest, num_repeat: int) -> float:
 
 
 if __name__ == "__main__":
-    IMPORTS: Final[list[str]] = ["graphdestinations", "matrix", "matrix2"]
+    IMPORTS: Final[list[str]] = [
+        "graphdestinations",
+        "optimizedgraphdest",
+        "matrix",
+        "matrix2",
+    ]
     GRAPH_FILES: Final[dict[str, tuple[int, list[str]]]] = {
         "flights1.txt": (10_000, []),
         "gistfile1.txt": (1_000, []),

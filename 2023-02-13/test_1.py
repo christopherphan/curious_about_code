@@ -6,6 +6,7 @@ from typing import Final
 import graphdestinations
 import matrix
 import matrix2
+import optimizedgraphdest
 from _resources import DirectedGraph, format_answer
 
 GRAPHS: Final[list[DirectedGraph]] = [
@@ -29,7 +30,7 @@ def test_graphdestinations():
 
 
 def test_functions():
-    funcs = [matrix.reachable, matrix2.reachable]
+    funcs = [optimizedgraphdest.reachable, matrix.reachable, matrix2.reachable]
     for g in GRAPHS:
         for f in funcs:
             assert process_soln(f(g)) == process_soln(graphdestinations.reachable(g))

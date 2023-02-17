@@ -1,4 +1,4 @@
-# graphdestinations.py
+# optimizedgraphdest.py
 
 """Solution to David Amos's weekly coding challenge for 2023-02-13:
     https://discourse.davidamos.dev/t/flight-inference/135
@@ -22,7 +22,10 @@ def reachable(dgraph: DirectedGraph) -> dict[str, list[str]]:
             for v2 in dgraph.edges[v]:
                 output[origin].append(v2)
                 if not visited[v2]:
-                    places_to_go.append(v2)
+                    if v2 in output:
+                        output[origin].extend(output[v2])
+                    else:
+                        places_to_go.append(v2)
             visited[v] = True
     return {v: list(set([k for k in output[v] if k != v])) for v in dgraph.vertices}
 
