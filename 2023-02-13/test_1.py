@@ -9,7 +9,9 @@ import matrix2
 from _resources import DirectedGraph, format_answer
 
 GRAPHS: Final[list[DirectedGraph]] = [
-    DirectedGraph.read_file(k) for k in ["example.txt", "flights1.txt", "gistfile1.txt"]
+    DirectedGraph.read_file(k)
+    for k in ["example.txt", "flights1.txt", "gistfile1.txt"]
+    + [f"random_{z}.txt" for z in range(4)]
 ]
 
 EXAMPLE_SOLN: Final[
