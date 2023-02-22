@@ -59,13 +59,7 @@ fn memoized_recursive(n: i64, cache: &mut HashMap<i64, i64>) -> i64 {
 }
 
 fn gauss_sum(n: i64) -> i64 {
-    if n > 0 {
-        n * (n + 1) / 2
-    } else if n == 0 {
-        0
-    } else {
-        -gauss_sum(-n)
-    }
+    n * (n.abs() + 1) / 2
 }
 
 fn main() {
