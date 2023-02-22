@@ -89,3 +89,99 @@ range -3 to 3: 42.782 ns
 range 0 to 8: 62.296 ns
 range -20 to 20: 643.859 ns
 ```
+
+## Improved `gauss_sum`
+
+I replaced `gauss_sum` with a streamlined implementation by
+[@ruud](https://discourse.davidamos.dev/t/adding-it-all-up/139/5):
+
+### Python
+
+Old:
+
+```python
+def gauss_sum(n: int) -> int:
+    """Return 1 + 2 + ... + n if n > 0, 0 if n == 0, and -1 - 2 - ... + n if n < 0."""
+    if not isinstance(n, int):
+        raise TypeError(f"Arugment {n!r} is not an integer.")
+    if n > 0:
+        return n * (n + 1) // 2
+    if n == 0:
+        return 0
+    else:
+        return -gauss_sum(-n)
+```
+
+New:
+
+```python
+def gauss_sum(n: int) -> int:
+    """Return 1 + 2 + ... + n if n > 0, 0 if n == 0, and -1 - 2 - ... + n if n < 0."""
+    if not isinstance(n, int):
+        raise TypeError(f"Arugment {n!r} is not an integer.")
+    return n * (abs(n) + 1) // 2
+```
+
+Original Python benchmark table (copied from above):
+
+| Function           |       14 |      -15 |      120 |        0 | `range(-3, 3)` | `range(0, 8)` | `range(-20, 20)` |
+| :----------------- | -------: | -------: | -------: | -------: | -------------: | ------------: | ---------------: |
+| `loop`             | 0.513 µs | 0.474 µs | 2.001 µs | 0.042 µs |       1.112 µs |      1.384 µs |        11.127 µs |
+| `listcomp`         | 0.345 µs | 0.417 µs | 1.712 µs | 0.041 µs |       1.535 µs |      1.900 µs |        14.650 µs |
+| `recursive`        | 0.676 µs | 0.783 µs | 5.651 µs | 0.035 µs |       1.017 µs |      1.895 µs |        21.835 µs |
+| `cached_recursive` | 0.052 µs | 0.051 µs | 0.114 µs | 0.058 µs |       0.583 µs |      0.606 µs |         2.749 µs |
+| `gauss_sum`        | 0.052 µs | 0.113 µs | 0.065 µs | 0.040 µs |       0.694 µs |      0.668 µs |         4.003 µs |
+
+Revised Python benchmark table:
+
+| Function           |       14 |      -15 |      120 |        0 | `range(-3, 3)` | `range(0, 8)` | `range(-20, 20)` |
+| :----------------- | -------: | -------: | -------: | -------: | -------------: | ------------: | ---------------: |
+| `loop`             | 0.531 µs | 0.481 µs | 2.138 µs | 0.042 µs |       1.116 µs |      1.376 µs |        11.242 µs |
+| `listcomp`         | 0.346 µs | 0.419 µs | 1.695 µs | 0.041 µs |       1.518 µs |      1.911 µs |        14.737 µs |
+| `recursive`        | 0.676 µs | 0.782 µs | 5.645 µs | 0.035 µs |       1.015 µs |      1.900 µs |        21.874 µs |
+| `cached_recursive` | 0.051 µs | 0.051 µs | 0.114 µs | 0.058 µs |       0.584 µs |      0.605 µs |         2.746 µs |
+| `gauss_sum`        | 0.057 µs | 0.066 µs | 0.068 µs | 0.060 µs |       0.597 µs |      0.734 µs |         3.095 µs |
+
+### Rust
+
+Old:
+
+```rust
+fn gauss_sum(n: i64) -> i64 {
+    if n > 0 {
+        n * (n + 1) / 2
+    } else if n == 0 {
+        0
+    } else {
+        -gauss_sum(-n)
+    }
+}
+```
+
+New:
+
+```rust
+fn gauss_sum(n: i64) -> i64 {
+    n * (n.abs() + 1) / 2
+}
+```
+
+Old benchmarks (copied from above):
+
+| Function             |       14 |      -15 |       120 |       0 |  `-3..3` |   `0..8` | `-20..20` |
+| :------------------- | -------: | -------: | --------: | ------: | -------: | -------: | --------: |
+| `_loop`              |     0 ns |     0 ns |      0 ns |    0 ns |  21.5 ns |  15.3 ns |  111.2 ns |
+| `reduce`             |   1.5 ns |   3.1 ns |    1.3 ns |  1.6 ns |  20.7 ns |  17.0 ns |  133.7 ns |
+| `recursive`          |     0 ns |     0 ns |      0 ns |    0 ns |  19.2 ns |  14.9 ns |  122.5 ns |
+| `memoized_recursive` | 721.2 ns | 533.2 ns | 4439.1 ns | 34.8 ns | 211.8 ns | 392.9 ns | 1742.6 ns |
+| `gauss_sum`          |     0 ns |     0 ns |      0 ns |    0 ns |  19.2 ns |  14.8 ns |  133.5 ns |
+
+New benchmarks:
+
+| Function             |        14 |      -15 |       120 |       0 |  `-3..3` |   `0..8` | `-20..20` |
+| :------------------- | --------: | -------: | --------: | ------: | -------: | -------: | --------: |
+| `_loop`              |      0 ns |     0 ns |      0 ns |    0 ns |  22.0 ns |  20.8 ns |  126.6 ns |
+| `reduce`             |    4.3 ns |   3.1 ns |    1.3 ns |  1.6 ns |  21.2 ns |  19.6 ns |  142.6 ns |
+| `recursive`          |      0 ns |     0 ns |      0 ns |    0 ns |  19.3 ns |  17.5 ns |  122.8 ns |
+| `memoized_recursive` | 1041.8 ns | 536.4 ns | 4450.4 ns | 35.2 ns | 212.3 ns | 415.1 ns | 1704.7 ns |
+| `gauss_sum`          |      0 ns |     0 ns |      0 ns |    0 ns |  17.3 ns |  10.6 ns |   68.9 ns |

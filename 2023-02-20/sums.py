@@ -63,9 +63,4 @@ def gauss_sum(n: int) -> int:
     """Return 1 + 2 + ... + n if n > 0, 0 if n == 0, and -1 - 2 - ... + n if n < 0."""
     if not isinstance(n, int):
         raise TypeError(f"Arugment {n!r} is not an integer.")
-    if n > 0:
-        return n * (n + 1) // 2
-    if n == 0:
-        return 0
-    else:
-        return -gauss_sum(-n)
+    return n * (abs(n) + 1) // 2
