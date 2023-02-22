@@ -1,2 +1,3 @@
 activate
 a.out
+*.wasm
