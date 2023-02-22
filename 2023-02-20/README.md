@@ -1,3 +1,7 @@
+# Solutions for 2023-02-20 ("Adding it all up")
+
+- [link](https://discourse.davidamos.dev/t/adding-it-all-up/139)
+
 ## TIO links
 
 - [ArnoldC](https://tio.run/##lVRLj9owED4nv2K0Fy6t1JV66qlOmBBrbU9qO6AcaRetEGyoEOyhf56OAwGxOPs4el7fYyaZb9vN@vHP4SD9yIEraealxjTxQj2AJ/AlQinMGO5k@3e/gzm0@@ffi@2PuzQpsYG8tNJ5LRx4iwjLUJQmDdXg0EPtoK7gW7R0s9/Fayf84KAF4VygoIV1/eAxgfRgaJYmEmbC@FAg3ENoAAFZbfISqIBfNTovyTgI3C@lpZhi0KQ57mZokZNa41gKj6oZwO6ZnsFht13O26ee1I1Xp4bAqQPMEA14tFoaxhmnqWIjQogBEKZo2RxhsaiVak6zUwkGmV1HJlfEs93xkRH5o6zuqcmTzZtcIbTpRB7lOYQKqeKYkDbq/r/FdvPa@58SlGR6nQsnPXlJVYX2VF@yYyAd6AakmUovgsdhZ539nDPU@Qf9WwdWCRqqJyUEn9Ikw1zUTFCONExImkmAcqIBpitczyyRI6XYOMhE/tAjdGYaAouuwtxDQRYUTWQeldgunua75ctiUGak53m/fpmvX3fcRy25zB@0RXEXFQU4YiN45UKzJGM4@llXLmBRKhyOkwgZFjPiXCHDuX9lMdfQsYG9DwNTz@l3Rn9@advFLrKA@B9kFdlT7A42u8dNe3sGzKmylCnUlA6YOuhpKD8CXunlfw5fq7BU8@d5xo0N73UOQJzTJ6DVR5a2Ghy3ukz60Pov1Ievavi2b8jmpVQqfcuGt124urL@9q4Qrv4Wp7ZSOC9ACZjyNYgvnMuaw@H@@38)
